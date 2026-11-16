@@ -62,6 +62,41 @@ def open_dashboard():
                   bg="#00124f",)
     label.pack(padx=25, pady=20)
 
+        activelabel = Label(master=dashboard,
+                  text="Systeem inactief",
+                  font=("Arial", 20,),
+                  fg="#FF4848",
+                  bg="#084B6D", )
+    activelabel.pack(padx=10, pady=10)
+
+    def onclick_deactivate():
+        if activelabel.cget("text") == "Systeem inactief":
+            activelabel.config(text="Systeem actief",
+                           fg="#adc473")
+        else:
+            activelabel.config(text="Systeem inactief",
+                               fg="#FF4848")
+
+        if activatebutton.cget("text")== "Deactiveer systeem":
+            activatebutton.config(text="Activeer systeem",
+                                  fg="white",
+                                  bg="green")
+        else:
+            activatebutton.config(text="Deactiveer systeem",
+                                  fg="white",
+                                  bg="red")
+
+
+
+
+    activatebutton = Button(master=dashboard,
+                    text="Deactiveer system",
+                    fg="white",
+                    bg="red",
+                    command=onclick_deactivate)
+    activatebutton.pack( padx=25, pady=20)
+
+
     dashboard.mainloop()
 
 
