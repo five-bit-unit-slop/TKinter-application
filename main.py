@@ -106,55 +106,68 @@ def open_dashboard():
     activatebutton.pack( padx=25, pady=20)
 
 
-    deurframe=Frame(master=dashboard,
-               bg="#02043C")
+ def onclick_deursim():
+        if activelabel.cget("text") == "Systeem actief":
+            if deurstatus.cget("text")== "Status: dicht":
+                deurstatus.config(text="Status: open", fg="#FF4848", bg="#02043C")
+
+    def onclick_achterdeursim():
+        if activelabel.cget("text") == "Systeem actief":
+            if achterdeurstatus.cget("text") == "Status: dicht":
+                achterdeurstatus.config(text="Status: open", fg="#FF4848", bg="#02043C")
+
+    def onclick_achterraamsim():
+        if activelabel.cget("text") == "Systeem actief":
+            if achterraamstatus.cget("text") == "Status: dicht":
+                achterraamstatus.config(text="Status: open", fg="#FF4848", bg="#02043C")
+
+    deurframe = Frame(master=dashboard,
+                      bg="#02043C")
     deurframe.pack(fill="x", padx=10, pady=10)
 
-    deurlabel=Label(master=deurframe,
-               text="Deur",
-               fg="white",
-               bg="#02043C",
-                font=("Arial", 20, ),)
-    deurlabel.grid(row=0, column=0, sticky="w")
-
-    deurstatus=Label(master=deurframe,
-                     text="Status: dicht",
-                     fg="#adc473",
-                     bg="#02043C",
-                     font=("Arial", 15, ))
-    deurstatus.grid(padx=140, row=0,column=1)
-
-    deursim=Button(master=deurframe,
-                   text="Simuleer opening",
-                   font=("Arial", 9, ))
-    deursim.grid(row=0,column=2,)
-
-
-
-    achterdeurframe = Frame(master=dashboard,
-                      bg="#02043C")
-    achterdeurframe.pack(fill="x", padx=10, pady=10)
-
-    achterdeurlabel = Label(master=achterdeurframe,
-                      text="Achterdeur",
+    deurlabel = Label(master=deurframe,
+                      text="Deur",
                       fg="white",
                       bg="#02043C",
                       font=("Arial", 20,), )
-    achterdeurlabel.grid(row=0, column=0, sticky="w")
+    deurlabel.grid(row=0, column=0, sticky="w")
 
-    achterdeurstatus = Label(master=achterdeurframe,
+    deurstatus = Label(master=deurframe,
                        text="Status: dicht",
                        fg="#adc473",
                        bg="#02043C",
                        font=("Arial", 15,))
+    deurstatus.grid(padx=140, row=0, column=1)
+
+    deursim = Button(master=deurframe,
+                     text="Simuleer opening",
+                     font=("Arial", 9),
+                     command=onclick_deursim)
+    deursim.grid(row=0, column=2, )
+
+    achterdeurframe = Frame(master=dashboard,
+                            bg="#02043C")
+    achterdeurframe.pack(fill="x", padx=10, pady=10)
+
+    achterdeurlabel = Label(master=achterdeurframe,
+                            text="Achterdeur",
+                            fg="white",
+                            bg="#02043C",
+                            font=("Arial", 20,), )
+    achterdeurlabel.grid(row=0, column=0, sticky="w")
+
+    achterdeurstatus = Label(master=achterdeurframe,
+                             text="Status: dicht",
+                             fg="#adc473",
+                             bg="#02043C",
+                             font=("Arial", 15,))
     achterdeurstatus.grid(padx=67, row=0, column=1)
 
     achterdeursim = Button(master=achterdeurframe,
-                     text="Simuleer opening",
-                     font=("Arial", 9,))
+                           text="Simuleer opening",
+                           font=("Arial", 9),
+                           command=onclick_achterdeursim)
     achterdeursim.grid(padx=72, row=0, column=2, )
-
-
 
     achterraamframe = Frame(master=dashboard,
                             bg="#02043C")
@@ -176,8 +189,10 @@ def open_dashboard():
 
     achterraamsim = Button(master=achterraamframe,
                            text="Simuleer opening",
-                           font=("Arial", 9,))
-    achterraamsim.grid(padx=79, row=0, column=2, )
+                           font=("Arial", 9,),
+                           command= onclick_achterraamsim)
+    achterraamsim.grid(padx=79, row=0, column=2)
+
 
 
     dashboard.mainloop()
