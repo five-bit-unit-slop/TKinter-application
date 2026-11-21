@@ -1,4 +1,3 @@
-
 # ballz
 from tkinter import *
 
