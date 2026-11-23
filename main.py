@@ -62,11 +62,11 @@ def open_dashboard():
                   bg="#00124f",)
     label.pack(padx=25, pady=20)
 
-        activelabel = Label(master=dashboard,
-                  text="Systeem inactief",
-                  font=("Arial", 20,),
-                  fg="#FF4848",
-                  bg="#084B6D", )
+    activelabel = Label(master=dashboard,
+                        text="Systeem inactief",
+                        font=("Arial", 20,),
+                        fg="#FF4848",
+                        bg="#084B6D", )
     activelabel.pack(padx=10, pady=10)
 
     def onclick_deactivate():
@@ -96,16 +96,16 @@ def open_dashboard():
                     command=onclick_deactivate)
     activatebutton.pack( padx=25, pady=20)
 
- activatebutton = Button(master=dashboard,
-                    text="Activeer system",
-                    fg="white",
-                    bg="green",
-                    font=("Arial", 15,),
-                    command=onclick_deactivate)
+    activatebutton = Button(master=dashboard,
+                            text="Activeer system",
+                            fg="white",
+                            bg="green",
+                            font=("Arial", 15,),
+                            command=onclick_deactivate)
     activatebutton.pack( padx=25, pady=20)
 
 
- def onclick_deursim():
+    def onclick_deursim():
         if activelabel.cget("text") == "Systeem actief":
             if deurstatus.cget("text")== "Status: dicht":
                 deurstatus.config(text="Status: open", fg="#FF4848", bg="#02043C")
