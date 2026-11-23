@@ -1,6 +1,7 @@
 import os
-import tkinter as tk
+from tkinter import *
 from tkinter import ttk
+import json, hashlib, hmac, os #used for password hashing
 
 # Maak het venster en zet het Azure light-thema aan.
 root = tk.Tk()
@@ -12,17 +13,46 @@ thema_bestand = os.path.join(map_van_app, "azure.tcl")
 root.tk.call("source", thema_bestand)
 root.tk.call("set_theme", "light")
 
-# Aan vervanging toe :/
 correct_user = "midas"
 correct_password = "midas735"
 systeem_actief = False
 
+# autoconfig:
+with open("data.json", "r", encoding="utf-8") as file:
+    data = json.load(file)
+    user_hash = data["Users"][0]["name"]
+    pass_hash = data["Users"][0]["pass"]
+    salt = data["Validation"][0]["salt"]
+
+    try:
+        salt = bytes.fromhex(salt)
+        if len(salt) != 16:
+            raise ValueError
+    except (ValueError, TypeError):
+        foutmelding.config(text="Salt is incorrect, er wordt een nieuwe gegenereerd...")
+        salt = os.urandom(16)
+        data["Validation"][0]["salt"] = salt.hex()
+
+        with open("data.json", "w", encoding="utf-8") as file:
+            json.dump(data, file, indent=4, ensure_ascii=False)
+
+def encrypter(text):
+    iterations = 100_000
+    password_hash = hashlib.pbkdf2_hmac('sha256', text.encode('utf-8'), salt, iterations)
+    return password_hash
+
+def verifier(text, hash):
+    text_hash = encrypter(text)
+    return hmac.compare_digest(hash, text_hash)
+
 
 def inloggen():
-    naam = userentry.get()
-    wachtwoord = passentry.get()
+    input_username = userentry.get()
+    input_pass = passentry.get()
+    input_username_hash = hashlib.sha256()
+    input_username_hash.update(input_username)
 
-    if naam == correct_user and wachtwoord == correct_password:
+    if input_username == correct_user and input_pass == correct_password:
         login_frame.pack_forget()
         dashboard_frame.pack(fill="both", expand=True, padx=25, pady=25)
     else:

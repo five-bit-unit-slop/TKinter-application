@@ -1,0 +1,10 @@
+{
+    "Users": [{
+        "name": "",
+        "pass": ""
+    }],
+    "Validation": [{
+        "sha265": "",
+        "salt": ""
+    }]
+}
