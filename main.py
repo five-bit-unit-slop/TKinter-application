@@ -1,7 +1,6 @@
-import os
-from tkinter import *
-from tkinter import ttk
-import json, hashlib, hmac, os #used for password hashing
+import tkinter as tk
+from tkinter import ttk, messagebox
+import json, hashlib, hmac, os
 
 # Maak het venster en zet het Azure light-thema aan.
 root = tk.Tk()
@@ -10,54 +9,62 @@ root.geometry("640x480")
 
 map_van_app = os.path.dirname(os.path.abspath(__file__))
 thema_bestand = os.path.join(map_van_app, "azure.tcl")
+data_bestand = os.path.join(map_van_app, "data.json")
 root.tk.call("source", thema_bestand)
 root.tk.call("set_theme", "light")
 
-correct_user = "midas"
-correct_password = "midas735"
 systeem_actief = False
+iterations = 600_000
 
-# autoconfig:
-with open("data.json", "r", encoding="utf-8") as file:
-    data = json.load(file)
+# Autoconfig:
+try:
+    with open(data_bestand, "r", encoding="utf-8") as file:
+        data = json.load(file)
+
     user_hash = data["Users"][0]["name"]
     pass_hash = data["Users"][0]["pass"]
-    salt = data["Validation"][0]["salt"]
+    salt = bytes.fromhex(data["Validation"][0]["salt"])
 
-    try:
-        salt = bytes.fromhex(salt)
-        if len(salt) != 16:
-            raise ValueError
-    except (ValueError, TypeError):
-        foutmelding.config(text="Salt is incorrect, er wordt een nieuwe gegenereerd...")
-        salt = os.urandom(16)
-        data["Validation"][0]["salt"] = salt.hex()
+    if len(salt) != 16:
+        raise ValueError("Salt must be exactly 16 bytes.")
 
-        with open("data.json", "w", encoding="utf-8") as file:
-            json.dump(data, file, indent=4, ensure_ascii=False)
+    user_hash = bytes.fromhex(user_hash)
+    pass_hash = bytes.fromhex(pass_hash)
+
+    if len(user_hash) != 32 or len(pass_hash) != 32:
+        raise ValueError("Stored hashes must be exactly 32 bytes.")
+
+except (OSError, json.JSONDecodeError, KeyError, IndexError, TypeError, ValueError) as e:
+    messagebox.showerror("Configuration error", f"Configuration is invalid or corrupted:\n{e}")
+    root.destroy()
+    raise SystemExit
+
 
 def encrypter(text):
-    iterations = 100_000
-    password_hash = hashlib.pbkdf2_hmac('sha256', text.encode('utf-8'), salt, iterations)
+    password_hash = hashlib.pbkdf2_hmac("sha256", text.encode("utf-8"), salt, iterations)
     return password_hash
 
-def verifier(text, hash):
+
+def verifier(text, stored_hash):
     text_hash = encrypter(text)
-    return hmac.compare_digest(hash, text_hash)
+    return hmac.compare_digest(stored_hash, text_hash)
 
 
 def inloggen():
     input_username = userentry.get()
     input_pass = passentry.get()
-    input_username_hash = hashlib.sha256()
-    input_username_hash.update(input_username)
 
-    if input_username == correct_user and input_pass == correct_password:
+    username_valid = verifier(input_username, user_hash)
+    password_valid = verifier(input_pass, pass_hash)
+
+    if username_valid and password_valid:
         login_frame.pack_forget()
         dashboard_frame.pack(fill="both", expand=True, padx=25, pady=25)
     else:
         foutmelding.config(text="Gebruikersnaam of wachtwoord is onjuist.")
+        userentry.delete(0, tk.END)
         passentry.delete(0, tk.END)
+        userentry.focus_set()
 
 
 def systeem_wijzigen():
