@@ -1,0 +1,15 @@
+{
+    "Users": [
+        {
+            "name": "bd43d4954451130de403ccfa7c3d637317041cfaf068fa54900f6261b56b4a8c",
+            "pass": "56147eb98b3d21b9c2244fd80ef697e274a53d62e40577b3eb167e4a459b6d89"
+        }
+    ],
+    "Validation": [
+        {
+            "_comment": "SHA265 komt later voor python validatie zodat er gekeken kan worden of er niet getemperd is met het script.",
+            "sha265": "",
+            "salt": "82dd1a7d425eae1559a022e090b8b13b"
+        }
+    ]
+}

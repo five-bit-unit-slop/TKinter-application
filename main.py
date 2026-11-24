@@ -1,201 +1,157 @@
-# ballz
-from tkinter import *
+import tkinter as tk
+from tkinter import ttk, messagebox
+import json, hashlib, hmac, os
 
-root = Tk()
+# Maak het venster en zet het Azure light-thema aan.
+root = tk.Tk()
+root.title("Smart Security System")
+root.geometry("640x480")
 
-titel = Label(master=root,
-text="SMART SECURITY",
-font=("Arial", 23, "bold"),
-fg="blue",)
-titel.pack( padx=25, pady=20)
+map_van_app = os.path.dirname(os.path.abspath(__file__))
+thema_bestand = os.path.join(map_van_app, "azure.tcl")
+data_bestand = os.path.join(map_van_app, "data.json")
+root.tk.call("source", thema_bestand)
+root.tk.call("set_theme", "light")
 
-username = Label(master=root,
-text="Vul je gebruikersnaam in",
-font=("Arial", 10, ))
-username.pack( padx=10, pady=10)
+systeem_actief = False
+iterations = 600_000
 
-userentry = Entry(master=root)
-userentry.pack( padx=10, pady=10)
+# Autoconfig:
+try:
+    with open(data_bestand, "r", encoding="utf-8") as file:
+        data = json.load(file)
 
-password = Label(master=root,
-text="Vul je wachtwoord in",
-font=("Arial", 10, ))
-password.pack( padx=10, pady=10)
+    user_hash = data["Users"][0]["name"]
+    pass_hash = data["Users"][0]["pass"]
+    salt = bytes.fromhex(data["Validation"][0]["salt"])
 
-passentry = Entry(master=root)
-passentry.pack( padx=10, pady=10)
+    if len(salt) != 16:
+        raise ValueError("Salt must be exactly 16 bytes.")
 
-correct_user = "midas"
-correct_password = "midas735"
-def onclick():
-    naam = userentry.get()
-    wachtwoord = passentry.get()
-    if naam == correct_user and wachtwoord == correct_password:
-        root.destroy()
-        open_dashboard()
+    user_hash = bytes.fromhex(user_hash)
+    pass_hash = bytes.fromhex(pass_hash)
 
+    if len(user_hash) != 32 or len(pass_hash) != 32:
+        raise ValueError("Stored hashes must be exactly 32 bytes.")
 
-button = Button(master=root,
-text="Log in",
-font=("Arial", 10, ),
-command=onclick,)
-button.pack( padx=25, pady=20)
-
-def open_dashboard():
-    dashboard = Tk()
-    dashboard.title("Smart Security System")
-    dashboard.geometry("600x400")
-    dashboard.configure(bg="#00124f")
+except (OSError, json.JSONDecodeError, KeyError, IndexError, TypeError, ValueError) as e:
+    messagebox.showerror("Configuration error", f"Configuration is invalid or corrupted:\n{e}")
+    root.destroy()
+    raise SystemExit
 
 
-    label=Label(master=dashboard,
-    text="Smart Security System",
-                font=("Arial", 22, "bold"),
-                fg="green",
-                bg="#00124f")
-    label.pack( padx=25, pady=20)
-
-    label = Label(master=dashboard,
-                  text="Je bent ingelogd",
-                  font=("Arial", 20, ),
-                  fg="green",
-                  bg="#00124f",)
-    label.pack(padx=25, pady=20)
-
-    activelabel = Label(master=dashboard,
-                        text="Systeem inactief",
-                        font=("Arial", 20,),
-                        fg="#FF4848",
-                        bg="#084B6D", )
-    activelabel.pack(padx=10, pady=10)
-
-    def onclick_deactivate():
-        if activelabel.cget("text") == "Systeem inactief":
-            activelabel.config(text="Systeem actief",
-                           fg="#adc473")
-        else:
-            activelabel.config(text="Systeem inactief",
-                               fg="#FF4848")
-
-        if activatebutton.cget("text")== "Deactiveer systeem":
-            activatebutton.config(text="Activeer systeem",
-                                  fg="white",
-                                  bg="green")
-        else:
-            activatebutton.config(text="Deactiveer systeem",
-                                  fg="white",
-                                  bg="red")
+def encrypter(text):
+    password_hash = hashlib.pbkdf2_hmac("sha256", text.encode("utf-8"), salt, iterations)
+    return password_hash
 
 
+def verifier(text, stored_hash):
+    text_hash = encrypter(text)
+    return hmac.compare_digest(stored_hash, text_hash)
 
 
-    activatebutton = Button(master=dashboard,
-                    text="Deactiveer system",
-                    fg="white",
-                    bg="red",
-                    command=onclick_deactivate)
-    activatebutton.pack( padx=25, pady=20)
+def inloggen():
+    input_username = userentry.get()
+    input_pass = passentry.get()
 
-    activatebutton = Button(master=dashboard,
-                            text="Activeer system",
-                            fg="white",
-                            bg="green",
-                            font=("Arial", 15,),
-                            command=onclick_deactivate)
-    activatebutton.pack( padx=25, pady=20)
+    username_valid = verifier(input_username, user_hash)
+    password_valid = verifier(input_pass, pass_hash)
 
-
-    def onclick_deursim():
-        if activelabel.cget("text") == "Systeem actief":
-            if deurstatus.cget("text")== "Status: dicht":
-                deurstatus.config(text="Status: open", fg="#FF4848", bg="#02043C")
-
-    def onclick_achterdeursim():
-        if activelabel.cget("text") == "Systeem actief":
-            if achterdeurstatus.cget("text") == "Status: dicht":
-                achterdeurstatus.config(text="Status: open", fg="#FF4848", bg="#02043C")
-
-    def onclick_achterraamsim():
-        if activelabel.cget("text") == "Systeem actief":
-            if achterraamstatus.cget("text") == "Status: dicht":
-                achterraamstatus.config(text="Status: open", fg="#FF4848", bg="#02043C")
-
-    deurframe = Frame(master=dashboard,
-                      bg="#02043C")
-    deurframe.pack(fill="x", padx=10, pady=10)
-
-    deurlabel = Label(master=deurframe,
-                      text="Deur",
-                      fg="white",
-                      bg="#02043C",
-                      font=("Arial", 20,), )
-    deurlabel.grid(row=0, column=0, sticky="w")
-
-    deurstatus = Label(master=deurframe,
-                       text="Status: dicht",
-                       fg="#adc473",
-                       bg="#02043C",
-                       font=("Arial", 15,))
-    deurstatus.grid(padx=140, row=0, column=1)
-
-    deursim = Button(master=deurframe,
-                     text="Simuleer opening",
-                     font=("Arial", 9),
-                     command=onclick_deursim)
-    deursim.grid(row=0, column=2, )
-
-    achterdeurframe = Frame(master=dashboard,
-                            bg="#02043C")
-    achterdeurframe.pack(fill="x", padx=10, pady=10)
-
-    achterdeurlabel = Label(master=achterdeurframe,
-                            text="Achterdeur",
-                            fg="white",
-                            bg="#02043C",
-                            font=("Arial", 20,), )
-    achterdeurlabel.grid(row=0, column=0, sticky="w")
-
-    achterdeurstatus = Label(master=achterdeurframe,
-                             text="Status: dicht",
-                             fg="#adc473",
-                             bg="#02043C",
-                             font=("Arial", 15,))
-    achterdeurstatus.grid(padx=67, row=0, column=1)
-
-    achterdeursim = Button(master=achterdeurframe,
-                           text="Simuleer opening",
-                           font=("Arial", 9),
-                           command=onclick_achterdeursim)
-    achterdeursim.grid(padx=72, row=0, column=2, )
-
-    achterraamframe = Frame(master=dashboard,
-                            bg="#02043C")
-    achterraamframe.pack(fill="x", padx=10, pady=10)
-
-    achterraamlabel = Label(master=achterraamframe,
-                            text="Achterraam",
-                            fg="white",
-                            bg="#02043C",
-                            font=("Arial", 20,), )
-    achterraamlabel.grid(row=0, column=0, sticky="w")
-
-    achterraamstatus = Label(master=achterraamframe,
-                             text="Status: dicht",
-                             fg="#adc473",
-                             bg="#02043C",
-                             font=("Arial", 15,))
-    achterraamstatus.grid(padx=60, row=0, column=1)
-
-    achterraamsim = Button(master=achterraamframe,
-                           text="Simuleer opening",
-                           font=("Arial", 9,),
-                           command= onclick_achterraamsim)
-    achterraamsim.grid(padx=79, row=0, column=2)
+    if username_valid and password_valid:
+        login_frame.pack_forget()
+        dashboard_frame.pack(fill="both", expand=True, padx=25, pady=25)
+    else:
+        foutmelding.config(text="Gebruikersnaam of wachtwoord is onjuist.")
+        userentry.delete(0, tk.END)
+        passentry.delete(0, tk.END)
+        userentry.focus_set()
 
 
+def systeem_wijzigen():
+    global systeem_actief
 
-    dashboard.mainloop()
+    if systeem_actief:
+        systeem_actief = False
+        activelabel.config(text="Systeem inactief")
+        activatebutton.config(text="Activeer systeem")
+    else:
+        systeem_actief = True
+        activelabel.config(text="Systeem actief")
+        activatebutton.config(text="Deactiveer systeem")
 
 
+def open_deur():
+    if systeem_actief:
+        deurstatus.config(text="Status: open")
+
+
+def open_achterdeur():
+    if systeem_actief:
+        achterdeurstatus.config(text="Status: open")
+
+
+def open_achterraam():
+    if systeem_actief:
+        achterraamstatus.config(text="Status: open")
+
+
+# Inlogscherm
+login_frame = ttk.Frame(root, padding=25)
+login_frame.pack(expand=True)
+
+titel = ttk.Label(login_frame, text="SMART SECURITY", font=("Arial", 23, "bold"))
+titel.pack(pady=(0, 20))
+
+username = ttk.Label(login_frame, text="Vul je gebruikersnaam in")
+username.pack(anchor="w")
+userentry = ttk.Entry(login_frame, width=30)
+userentry.pack(pady=(5, 15))
+
+password = ttk.Label(login_frame, text="Vul je wachtwoord in")
+password.pack(anchor="w")
+passentry = ttk.Entry(login_frame, width=30, show="*")
+passentry.pack(pady=(5, 10))
+
+foutmelding = ttk.Label(login_frame, text="")
+foutmelding.pack()
+
+loginbutton = ttk.Button(login_frame, text="Log in", command=inloggen, style="Accent.TButton")
+loginbutton.pack(fill="x", pady=10)
+userentry.focus_set()
+
+# Dashboard: dit frame wordt pas zichtbaar na het inloggen.
+dashboard_frame = ttk.Frame(root)
+
+ttk.Label(dashboard_frame, text="Smart Security System", font=("Arial", 20, "bold")).pack(pady=(0, 10))
+ttk.Label(dashboard_frame, text="Je bent ingelogd").pack()
+
+activelabel = ttk.Label(dashboard_frame, text="Systeem inactief", font=("Arial", 14))
+activelabel.pack(pady=10)
+activatebutton = ttk.Button(dashboard_frame, text="Activeer systeem", command=systeem_wijzigen, style="Accent.TButton")
+activatebutton.pack(pady=(0, 20))
+
+# Deur
+deurframe = ttk.Frame(dashboard_frame)
+deurframe.pack(fill="x", pady=5)
+ttk.Label(deurframe, text="Deur", width=15).pack(side="left")
+deurstatus = ttk.Label(deurframe, text="Status: dicht", width=15)
+deurstatus.pack(side="left")
+ttk.Button(deurframe, text="Simuleer opening", command=open_deur).pack(side="right")
+
+# Achterdeur
+achterdeurframe = ttk.Frame(dashboard_frame)
+achterdeurframe.pack(fill="x", pady=5)
+ttk.Label(achterdeurframe, text="Achterdeur", width=15).pack(side="left")
+achterdeurstatus = ttk.Label(achterdeurframe, text="Status: dicht", width=15)
+achterdeurstatus.pack(side="left")
+ttk.Button(achterdeurframe, text="Simuleer opening", command=open_achterdeur).pack(side="right")
+
+# Achterraam
+achterraamframe = ttk.Frame(dashboard_frame)
+achterraamframe.pack(fill="x", pady=5)
+ttk.Label(achterraamframe, text="Achterraam", width=15).pack(side="left")
+achterraamstatus = ttk.Label(achterraamframe, text="Status: dicht", width=15)
+achterraamstatus.pack(side="left")
+ttk.Button(achterraamframe, text="Simuleer opening", command=open_achterraam).pack(side="right")
 
 root.mainloop()
