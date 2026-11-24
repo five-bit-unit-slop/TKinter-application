@@ -16,7 +16,7 @@ Een vereenvoudigde versie van de Smart Security Tkinter-app met het Azure light-
 
 ## Gebruik
 
-Log in met gebruikersnaam `midas` en wachtwoord `midas735`. Activeer het systeem om een opening van de deur, achterdeur of het achterraam te simuleren. Een gesimuleerde opening blijft open, zoals in het oorspronkelijke prototype.
+Log in met gebruikersnaam `user` en wachtwoord `SuperP4ss!`. Activeer het systeem om een opening van de deur, achterdeur of het achterraam te simuleren. Een gesimuleerde opening blijft open, zoals in het oorspronkelijke prototype.
 
 **Let op:** dit is een prototype. De inloggegevens staan in de broncode; er is geen echte authenticatie of verbinding met beveiligingshardware.
 
